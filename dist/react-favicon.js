@@ -3,7 +3,7 @@
 var React = require('react');
 var linkEl;
 
-function drawIcon(src, num, cb) {
+var drawIcon = function drawIcon(src, num, cb) {
   var img = document.createElement('img');
   img.onload = function () {
     var canvas = document.createElement('canvas');
@@ -14,11 +14,11 @@ function drawIcon(src, num, cb) {
     context.clearRect(0, 0, img.width, img.height);
     context.drawImage(img, 0, 0);
 
-    var top = img.height - 9,
-        left = img.width - 7 - 1,
-        bottom = 16,
-        right = 16,
-        radius = 2;
+    var top = img.height / 2 - 6,
+        left = img.width / 2 - 6,
+        bottom = img.height,
+        right = img.width,
+        radius = 8;
 
     context.fillStyle = '#F03D25';
     context.strokeStyle = '#F03D25';
@@ -36,16 +36,16 @@ function drawIcon(src, num, cb) {
     context.closePath();
     context.fill();
 
-    context.font = 'bold 10px arial';
+    context.font = '16px Arial';
     context.fillStyle = '#FFF';
-    context.textAlign = 'right';
+    context.textAlign = 'center';
     context.textBaseline = 'top';
-    context.fillText(num, 15, 6);
+    context.fillText(num, img.height / 2 + 5, img.height / 2 - 3);
 
     cb(null, context.canvas.toDataURL());
   };
   img.src = src;
-}
+};
 
 var Favicon = React.createClass({
   displayName: 'Favicon',
@@ -74,9 +74,9 @@ var Favicon = React.createClass({
     },
 
     draw: function draw() {
-      if (typeof document === 'undefined') {
-        return;
-      }if (typeof linkEl === 'undefined') {
+      if (typeof document === 'undefined') return;
+
+      if (typeof linkEl === 'undefined') {
         var head = document.getElementsByTagName('head')[0];
         linkEl = document.createElement('link');
         linkEl.type = 'image/x-icon';
@@ -92,25 +92,19 @@ var Favicon = React.createClass({
       var activeInstance = Favicon.getActiveInstance();
       var currentUrl;
 
-      if (activeInstance.props.url instanceof Array) {
-        currentUrl = activeInstance.props.url[activeInstance.state.animationIndex];
-      } else {
-        currentUrl = activeInstance.props.url;
-      }
+      if (activeInstance.props.url instanceof Array) currentUrl = activeInstance.props.url[activeInstance.state.animationIndex];else currentUrl = activeInstance.props.url;
 
       if (activeInstance.props.alertCount) {
         drawIcon(currentUrl, activeInstance.props.alertCount, function (err, url) {
           linkEl.href = url;
         });
-      } else {
-        linkEl.href = currentUrl;
-      }
+      } else linkEl.href = currentUrl;
     },
 
     update: function update() {
-      if (typeof document === 'undefined') {
-        return;
-      }var activeInstance = Favicon.getActiveInstance();
+      if (typeof document === 'undefined') return;
+
+      var activeInstance = Favicon.getActiveInstance();
       var isAnimated = activeInstance.props.url instanceof Array && activeInstance.props.animated;
 
       // clear any running animations
@@ -138,10 +132,16 @@ var Favicon = React.createClass({
     Favicon.update();
   },
 
+  shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
+    if (nextProps.alertCount === this.props.alertCount) return false;
+    return true;
+  },
+
   componentDidUpdate: function componentDidUpdate(prevProps) {
     if (prevProps.url === this.props.url && prevProps.animated === this.props.animated && prevProps.alertCount === this.props.alertCount) {
       return;
-    }Favicon.update();
+    }
+    Favicon.update();
   },
 
   render: function render() {
